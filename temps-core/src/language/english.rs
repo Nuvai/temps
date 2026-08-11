@@ -225,7 +225,13 @@ fn time_digits<'a>()
 /// Parse a raw hour (number or named time like "noon") for use in fractional expressions.
 fn raw_hour<'a>() -> impl Parser<'a, &'a str, u8, ParserError<'a>> + Clone {
     choice((
-        two_digit_number(),
+        two_digit_number().try_map(|h, span| {
+            if h <= 23 {
+                Ok(h)
+            } else {
+                Err(Rich::custom(span, "hour must be 0-23"))
+            }
+        }),
         keyword_ci("noon").to(12u8),
         keyword_ci("midnight").to(0u8),
     ))
@@ -256,6 +262,13 @@ fn fractional_time<'a>()
         });
 
     choice((half_past, quarter_past, quarter_to))
+        .try_map(|(hour, minute, second, mer), span| {
+            if time_utils::is_valid_time(hour, minute, second, mer) {
+                Ok((hour, minute, second, mer))
+            } else {
+                Err(Rich::custom(span, "invalid time"))
+            }
+        })
 }
 
 fn time_expr<'a>() -> impl Parser<'a, &'a str, TimeExpression, ParserError<'a>> + Clone {
