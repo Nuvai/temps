@@ -130,6 +130,7 @@ fn weekday<'a>() -> impl Parser<'a, &'a str, Weekday, ParserError<'a>> + Clone {
 
 fn day_shortcuts<'a>() -> impl Parser<'a, &'a str, DayReference, ParserError<'a>> + Clone {
     choice((
+        keyword_ci("day after tomorrow").to(DayReference::DayAfterTomorrow),
         keyword_ci("today").to(DayReference::Today),
         keyword_ci("yesterday").to(DayReference::Yesterday),
         keyword_ci("tomorrow").to(DayReference::Tomorrow),
@@ -218,6 +219,23 @@ fn time_expr<'a>() -> impl Parser<'a, &'a str, TimeExpression, ParserError<'a>> 
             meridiem,
         })
     })
+}
+
+fn named_time<'a>() -> impl Parser<'a, &'a str, TimeExpression, ParserError<'a>> + Clone {
+    choice((
+        keyword_ci("noon").to(TimeExpression::Time(Time {
+            hour: 12,
+            minute: 0,
+            second: 0,
+            meridiem: None,
+        })),
+        keyword_ci("midnight").to(TimeExpression::Time(Time {
+            hour: 0,
+            minute: 0,
+            second: 0,
+            meridiem: None,
+        })),
+    ))
 }
 
 fn day_at_time<'a>() -> impl Parser<'a, &'a str, TimeExpression, ParserError<'a>> + Clone {
@@ -312,6 +330,7 @@ fn parser<'a>() -> impl Parser<'a, &'a str, TimeExpression, ParserError<'a>> {
         day_reference()
             .map(TimeExpression::Day)
             .labelled("day reference"),
+        named_time().labelled("named time (noon, midnight)"),
         time_expr().labelled("time of day"),
         relative_past().labelled("`<n> <unit> ago`"),
         relative_future().labelled("`in <n> <unit>`"),

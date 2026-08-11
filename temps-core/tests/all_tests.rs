@@ -1123,9 +1123,28 @@ fn test_day_shortcuts_english() {
         ("today", TimeExpression::Day(DayReference::Today)),
         ("tomorrow", TimeExpression::Day(DayReference::Tomorrow)),
         ("yesterday", TimeExpression::Day(DayReference::Yesterday)),
+        ("day after tomorrow", TimeExpression::Day(DayReference::DayAfterTomorrow)),
         ("TODAY", TimeExpression::Day(DayReference::Today)),
         ("Tomorrow", TimeExpression::Day(DayReference::Tomorrow)),
         ("YESTERDAY", TimeExpression::Day(DayReference::Yesterday)),
+        ("Day After Tomorrow", TimeExpression::Day(DayReference::DayAfterTomorrow)),
+    ];
+
+    for (input, expected) in test_cases {
+        let result = parse(input, Language::English);
+        assert!(result.is_ok(), "Failed to parse: {input}");
+        let parsed = result.unwrap();
+        assert_eq!(parsed, expected, "Mismatch for input: {input}");
+    }
+}
+
+#[test]
+fn test_named_times_english() {
+    let test_cases = vec![
+        ("noon", TimeExpression::Time(Time { hour: 12, minute: 0, second: 0, meridiem: None })),
+        ("midnight", TimeExpression::Time(Time { hour: 0, minute: 0, second: 0, meridiem: None })),
+        ("NOON", TimeExpression::Time(Time { hour: 12, minute: 0, second: 0, meridiem: None })),
+        ("Midnight", TimeExpression::Time(Time { hour: 0, minute: 0, second: 0, meridiem: None })),
     ];
 
     for (input, expected) in test_cases {
